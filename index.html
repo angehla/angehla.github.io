@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Angela · Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,800;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a quiet archive, a reader leaning into a microfiche machine.
+   IDEA: a microfiche sheet (grid A–Q × 1–16) that the index tabs drive.
+   PICTURE: the dark viewer, panning across sepia cards of real work.
+   COLOUR and TYPE: paper cream, ink brown-black, one Illinois-orange accent; Newsreader + IBM Plex Mono.
+   LAYOUT: name + tabs on the left, the viewer filling the right; stacks on phones. */
+:root{color-scheme:light dark;
+  --bg:light-dark(#efe7d6,#1b1712);--ink:light-dark(#1d1a16,#efe6d2);--mute:light-dark(#6d6352,#a99c84);
+  --accent:light-dark(#c4420e,#ff7d42);--rule:light-dark(#1d1a16,#efe6d2);
+  --tab1:light-dark(#f5efe2,#3a3228);--tab2:light-dark(#dcd1b6,#2a241c);--tabedge:light-dark(#b8ab8e,#14110d);
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--serif);overflow-x:clip;
+  background-image:repeating-linear-gradient(0deg,transparent 0 3px,light-dark(rgba(80,60,30,.045),rgba(255,240,210,.025)) 3px 4px)}
+a{color:inherit}
+.shell{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:clamp(20px,3vw,32px);
+  padding:clamp(16px,3vw,32px);height:100vh;min-height:640px}
+/* left column */
+.side{display:flex;flex-direction:column}
+h1{font:800 clamp(40px,4.6vw,52px)/1 var(--serif);letter-spacing:-.045em;margin:0 0 22px}
+.loc{font:500 13px/1 var(--mono);letter-spacing:.06em;color:var(--accent);margin:0 0 12px}
+.tag{font-size:17px;margin:0;max-width:30ch}
+.links{display:flex;flex-wrap:wrap;gap:10px 18px;margin:auto 0 18px;padding-top:28px}
+.links a{font:500 13px/1 var(--mono);letter-spacing:.04em;text-decoration:none;padding:4px 0 7px;border-bottom:2px solid var(--rule)}
+.links a:hover,.links a:focus-visible{color:var(--accent);border-color:var(--accent);outline:none}
+.count{font:400 11px/1 var(--mono);letter-spacing:.08em;color:var(--mute);border-top:1px solid var(--rule);padding-top:14px;margin:0 0 10px}
+.tabs{list-style:none;margin:0;padding:0;border-top:2px solid var(--rule)}
+.tab{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto 36px;
+  gap:6px;align-items:center;height:47px;padding:0 10px 0 12px;color:var(--ink);
+  background:linear-gradient(var(--tab1),var(--tab2));border-bottom:1px solid var(--tabedge);
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 7px 9px -7px rgba(0,0,0,.45);
+  transition:transform .3s cubic-bezier(.3,.7,.2,1),filter .3s;position:relative}
+.tab:hover{transform:translateX(4px)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tab[aria-current=true]{transform:translateX(12px);filter:brightness(1.06);z-index:1;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 10px 14px -8px rgba(0,0,0,.55)}
+.tab .n,.tab .co{font:400 11px/1 var(--mono);color:var(--mute)}
+.tab .t{font:italic 600 19px/1.1 var(--serif);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hole{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:400 9.5px/1 var(--mono);color:var(--mute);
+  background:radial-gradient(circle at 50% 35%,var(--tab2),var(--tab1));box-shadow:inset 0 2px 4px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.4)}
+.hint{font:400 11px/1.4 var(--mono);letter-spacing:.06em;color:var(--mute);margin:14px 0 0}
+/* viewer */
+.viewer{position:relative;overflow:hidden;border-radius:3px;background:#15120e;cursor:grab;touch-action:none;
+  box-shadow:inset 0 0 0 1px #000,0 2px 0 rgba(0,0,0,.2)}
+.viewer.drag{cursor:grabbing}
+.canvas{position:absolute;left:0;top:0;display:grid;grid-template-columns:repeat(17,230px);grid-template-rows:repeat(16,190px);
+  gap:14px;padding:40px;transform-origin:0 0;transition:transform .95s cubic-bezier(.65,.02,.25,1),filter .35s;
+  filter:sepia(.28) contrast(1.04);will-change:transform}
+.viewer.moving .canvas{filter:sepia(.28) contrast(1.04) blur(1.3px) brightness(.92)}
+.viewer.drag .canvas{transition:none}
+.cell{font:500 34px/1 var(--mono);color:rgba(255,236,200,.055);display:flex;align-items:flex-end;padding:0 0 4px 4px;user-select:none}
+.card{position:relative;z-index:1;overflow:hidden;grid-column:var(--c)/span var(--w);grid-row:var(--r)/span var(--h);
+  background:#e9dfc5 linear-gradient(170deg,rgba(255,255,255,.28),rgba(120,90,40,.10));color:#231d15;
+  padding:16px 18px 30px;font-size:13.5px;line-height:1.5;box-shadow:0 14px 26px -8px rgba(0,0,0,.6),0 0 0 1px rgba(60,40,10,.15);cursor:pointer}
+.card.ink{background:#262019;color:#e9dfc5}
+.card .co{position:absolute;right:12px;bottom:9px;font:400 11px/1 var(--mono);opacity:.65}
+.card .cap{position:absolute;left:16px;bottom:9px;font:400 11px/1 var(--mono);letter-spacing:.06em;opacity:.75}
+.card h2{font:600 24px/1.1 var(--serif);letter-spacing:-.02em;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid rgba(35,29,21,.35)}
+.card p{margin:0 0 8px;text-align:justify;hyphens:auto}
+.lab{font:400 11px/1.3 var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.acc{color:#b23c0c}
+.big.sm{font-size:26px!important}
+.card .big{font:italic 600 36px/1 var(--serif);letter-spacing:-.03em;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid rgba(35,29,21,.35)}
+.rows{display:grid;gap:0;margin-top:8px}
+.rows div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid rgba(35,29,21,.22);font:400 11.5px/1.25 var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.rows div span:last-child{text-align:right;opacity:.8}
+.fill{position:absolute;inset:0}
+.fill svg{width:100%;height:100%;display:block}
+.withheld{position:absolute;inset:14px 14px 34px;border:1px dashed rgba(233,223,197,.35);display:grid;place-content:center;text-align:center;gap:6px}
+.open{position:absolute;left:16px;bottom:34px;font:500 13px/1 var(--mono);letter-spacing:.06em;background:#231d15;color:#e9dfc5;padding:12px 14px;text-decoration:none}
+.open:hover,.open:focus-visible{background:#b23c0c;outline:none}
+.dmaic{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:6px}
+.dmaic div{border:1px solid rgba(35,29,21,.45);padding:8px 8px 10px}
+.dmaic b{display:block;font:600 40px/1 var(--serif)}
+@keyframes pulse{to{transform:scaleY(.35)}}
+.xl{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 12px;font-size:15px;margin-top:4px}
+.xl span{font:400 11px/1.9 var(--mono);opacity:.7}
+.counts{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:6px}
+.counts b{font:600 44px/1 var(--serif);text-align:center;padding:12px 0;border:1px solid rgba(35,29,21,.4);transition:background .15s,color .15s}
+.counts b.on{background:#231d15;color:#e9dfc5}
+.seg{fill:#3a1a10}.seg.on{fill:#ff5a2a}
+.sound{position:absolute;top:14px;right:14px;z-index:3;font:500 13px/1 var(--mono);background:#efe6d2;color:#231d15;border:0;padding:10px 14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4);min-height:36px}
+.sound[aria-pressed=false]{opacity:.7}
+.sound:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vig,.grain{position:absolute;inset:0;pointer-events:none;z-index:2}
+.vig{background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.55))}
+.grain{opacity:.16;mix-blend-mode:overlay;animation:jit .5s steps(3) infinite;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes jit{33%{background-position:40px 70px}66%{background-position:-60px 20px}}
+dialog.rv{width:min(820px,calc(100% - 24px));max-height:88vh;padding:0;border:0;background:#f7f1e3;color:#1d1a16;box-shadow:0 30px 80px rgba(0,0,0,.5);font:15px/1.45 var(--serif)}
+dialog.rv::backdrop{background:rgba(20,15,10,.62)}
+.rv .bar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 22px;background:#1d1a16;color:#efe6d2;font:500 12px/1 var(--mono);letter-spacing:.06em}
+.rv .bar button{all:unset;cursor:pointer;font:500 13px/1 var(--mono);padding:10px 12px;border:1px solid #efe6d2}
+.rv .bar button:focus-visible{outline:2px solid var(--accent)}
+.rv .body{padding:clamp(18px,4vw,36px)}
+.rv h2{font:800 34px/1 var(--serif);letter-spacing:-.03em;margin:0 0 6px;text-align:center}
+.rv .ct{text-align:center;font:400 12px/1.5 var(--mono);color:#6d6352;margin:0 0 18px}
+.rv h3{font:500 12px/1 var(--mono);letter-spacing:.08em;color:#b23c0c;border-bottom:1px solid #1d1a16;padding-bottom:6px;margin:22px 0 10px}
+.rv .job{margin:0 0 12px}
+.rv .hd{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 12px}
+.rv .hd b{font-weight:600}.rv .hd i{color:#4c4436}
+.rv .hd span{white-space:nowrap;font:400 12px/1.8 var(--mono);color:#6d6352}
+.rv ul{margin:4px 0 0;padding-left:18px}.rv li{margin:2px 0}
+@media (max-width:860px){
+  .shell{display:block;height:auto;min-height:0}
+  .links{margin:22px 0 18px;padding-top:0}
+  .viewer{height:72vh;min-height:440px;margin-top:22px}
+  .tab[aria-current=true]{transform:translateX(8px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .canvas,.tab{transition:none}.grain{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <h1>Angela Zhang</h1>
+    <p class="loc">URBANA-CHAMPAIGN, ILLINOIS</p>
+    <p class="tag">Industrial engineering, with a minor in computer science, at UIUC.</p>
+    <nav class="links" aria-label="Links">
+      <a href="#" id="resume">RÉSUMÉ ↗</a>
+      <a href="https://www.linkedin.com/in/angelaazhang/">LINKEDIN ↗</a>
+      <a href="https://github.com/angehla">GITHUB ↗</a>
+      <a href="mailto:angelaz9@illinois.edu" title="angelaz9@illinois.edu">EMAIL</a>
+    </nav>
+    <p class="count" id="count"></p>
+    <ul class="tabs" id="tabs"></ul>
+    <p class="hint">DRAG TO PAN · ↑ ↓ TO BROWSE</p>
+  </aside>
+
+  <main class="viewer" id="viewer" aria-label="Project viewer">
+    <div class="canvas" id="canvas"></div>
+    <div class="vig"></div><div class="grain"></div>
+    <button class="sound" id="sound" aria-pressed="false" aria-label="Toggle sound">◖)) OFF</button>
+  </main>
+</div>
+<dialog class="rv" id="rv" aria-label="Résumé"><div class="bar"><span>RÉSUMÉ · ANGELA ZHANG</span><button id="rvx" aria-label="Close résumé">CLOSE ✕</button></div><div class="body" id="rvb"></div></dialog>
+
+<script>
+{
+/* ===== EDIT YOUR ENTRIES HERE =====
+   year: leave '' to show a blank punch-hole (fill in once you know it). */
+const ENTRIES = [
+  {id:'about',     title:'About me',            year:'',     at:'B9'},
+  {id:'six-sigma', title:'Six Sigma Quiz',      year:'2026', at:'B3'},
+  {id:'balance',   title:'BALANCE Research',    year:'2024',     at:'M7'},
+  {id:'cosmos',    title:'COSMOS Timer',        year:'',     at:'K12'},
+  {id:'dance',     title:'Jun Lu Performing Arts', year:'2023',  at:'N12'}
+];
+
+const L = 'ABCDEFGHIJKLMNOPQ';
+const rows = (r) => '<div class="rows">' + r.map(([k,v]) => `<div><span>${k}</span><span>${v}</span></div>`).join('') + '</div>';
+const titleCard = (code, name, yr, tags, sm) => `<div class="lab acc">${code}</div><div class="big${sm?' sm':''}">${name}</div><div class="rows"><div><span>${yr}</span><span></span></div><div><span>${tags}</span><span></span></div></div>`;
+
+/* 7-segment timer for the COSMOS card */
+const SEG = {a:[6,0,22,6],b:[28,6,6,24],c:[28,36,6,24],d:[6,60,22,6],e:[0,36,6,24],f:[0,6,6,24],g:[6,30,22,6]};
+const DIG = ['abcdef','bc','abged','abgcd','fgbc','afgcd','afgedc','abc','abcdefg','abcdfg'];
+const digit = (i,x) => `<g transform="translate(${x} 0) skewX(-6)">` + Object.entries(SEG).map(([k,[sx,sy,w,h]]) => `<rect class="seg" data-d="${i}" data-s="${k}" x="${sx}" y="${sy}" width="${w}" height="${h}" rx="2"/>`).join('') + '</g>';
+const board = `<svg viewBox="0 0 700 400" aria-label="Illustration of an Arduino timer on a breadboard">
+  <defs><pattern id="hp" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="5" y="5" width="4" height="4" rx="1" fill="#7c7462"/></pattern></defs>
+  <rect x="36" y="196" width="430" height="168" rx="8" fill="#d8d0bb"/><rect x="36" y="196" width="430" height="168" rx="8" fill="url(#hp)"/>
+  <rect x="36" y="274" width="430" height="12" fill="#c4bba4"/>
+  <rect x="496" y="176" width="176" height="188" rx="10" fill="#2f5873"/><rect x="510" y="186" width="148" height="14" fill="#1c1c1c"/>
+  <rect x="548" y="248" width="70" height="40" rx="3" fill="#191919"/><rect x="644" y="300" width="22" height="34" fill="#bdbdbd"/>
+  <path d="M150 150 C150 190 160 205 170 214M200 150 C205 185 215 205 226 214M300 150 C300 180 310 200 324 214" stroke="#c4420e" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M380 340 C430 360 470 330 510 340M380 228 C430 210 470 230 512 214" stroke="#e9dfc5" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="110" y="36" width="300" height="118" rx="6" fill="#0d0b09" stroke="#3a3228"/>
+  <g transform="translate(136 62)">${digit(0,0)}${digit(1,52)}<circle cx="114" cy="22" r="4" fill="#ff5a2a"/><circle cx="114" cy="46" r="4" fill="#ff5a2a"/>${digit(2,134)}${digit(3,186)}</g>
+</svg>`;
+
+/* two cats, drawn simply */
+const cat = (x, fill, marks) => `<g transform="translate(${x} 0)">
+  <path d="M60 118 C110 120 120 70 92 60" stroke="#231d15" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <ellipse cx="40" cy="96" rx="34" ry="30" fill="${fill}" stroke="#231d15" stroke-width="2"/>
+  <polygon points="18,42 22,18 36,34" fill="${fill}" stroke="#231d15" stroke-width="2"/><polygon points="62,42 58,18 44,34" fill="${fill}" stroke="#231d15" stroke-width="2"/>
+  <circle cx="40" cy="50" r="24" fill="${fill}" stroke="#231d15" stroke-width="2"/>${marks}
+  <circle cx="31" cy="49" r="3" fill="#231d15"/><circle cx="49" cy="49" r="3" fill="#231d15"/></g>`;
+const cats = `<svg viewBox="0 0 400 128" aria-label="Oreo and Louis">
+  ${cat(70,'#f6f1e4','<ellipse cx="22" cy="92" rx="9" ry="7" fill="#231d15"/><ellipse cx="54" cy="104" rx="7" ry="6" fill="#231d15"/><ellipse cx="50" cy="40" rx="8" ry="6" fill="#231d15"/>')}
+  ${cat(230,'#8d887f','<path d="M28 30 l4 10 M40 27 v11 M52 30 l-4 10 M14 90 h14 M14 102 h12 M54 90 h12" stroke="#4a463f" stroke-width="3" stroke-linecap="round"/>')}
+</svg>`;
+
+/* ===== CARDS: e = entry id, c/r = column/row (A=1, row 1 = top), w/h = span ===== */
+const CARDS = [
+  // flavour
+  {e:'x',c:1,r:1,w:1,h:1,html:`<div class="lab">A–Q</div><div class="lab" style="margin-top:8px">SELECTED WORK<br>SHEET 1 OF 1</div>`},
+  {e:'x',c:7,r:8,w:1,h:1,html:`<div class="lab">REFERENCE CARD</div>${rows([['REDUCTION','24:1'],['POLARITY','NEG'],['SHEET','1/1']])}`},
+  {e:'x',c:16,r:16,w:2,h:1,cls:'ink',html:`<div class="lab">END</div><div style="font:600 28px/1.1 var(--serif);margin-top:10px">Sheet complete · rewind</div>`},
+
+  // about
+  {e:'about',c:2,r:6,w:2,h:1,html:`<div class="lab">AFFILIATIONS</div>${rows([['IISE','UNDERCLASSMEN REP'],['ILLINOIS BUSINESS CONSULTING','CONSULTANT'],['CUBE CONSULTING','TECH. CONSULTANT'],['INNOVATION LLC','MEMBER'],['SUPPLY CHAIN MGMT ASSOC.','MEMBER']])}`},
+  {e:'about',c:4,r:6,w:2,h:1,html:`<div class="fill" style="inset:10px 10px 30px">${cats}</div><span class="cap">THE CATS · OREO &amp; LOUIS</span>`},
+  {e:'about',c:2,r:7,w:2,h:2,cls:'ink',html:`<img src="headshot.jpg" alt="Portrait of Angela" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%"><span class="cap" style="z-index:1;color:#e9dfc5">ANGELA · PORTRAIT</span>`},
+  {e:'about',c:4,r:7,w:2,h:2,html:`<h2>About Me</h2>
+     <p>I'm a freshman in the Grainger College of Engineering at the University of Illinois Urbana-Champaign, studying industrial engineering with a minor in computer science.</p>
+     <p>I care about human-centered design and I'm interested in product management. On the engineering side, I'm drawn to quality engineering and reliability, and how they tie into supply chain.</p>
+     <p>At Illinois I consult with Illinois Business Consulting and CUBE Consulting, and as IISE's underclassmen rep I founded the ISE Underclassmen Committee. Back in San Jose, I founded the Design Innovation Society and taught dance at Jun Lu.</p>`},
+  {e:'about',c:2,r:9,w:2,h:1,html:titleCard('ANG·ABT·2026','About me','URBANA-CHAMPAIGN, IL','ISE · CS MINOR · DESIGN')},
+  {e:'about',c:4,r:9,w:2,h:1,html:`<div class="lab acc">LANGUAGES &amp; SKILLS</div>${rows([['ENGLISH','NATIVE'],['MANDARIN','PROFICIENT'],['CODE','PYTHON · HTML'],['TOOLS','EXCEL · CAD · CANVA']])}`},
+  {e:'about',c:2,r:10,w:2,h:1,html:`<div class="lab acc">PERSONNEL RECORD</div>${rows([['STUDIES','B.S. INDUSTRIAL ENG.'],['MINOR','COMPUTER SCIENCE'],['COLLEGE','GRAINGER · UIUC'],['EXPECTED','MAY 2029']])}`},
+  {e:'about',c:4,r:10,w:2,h:1,html:`<div class="lab">OFF THE CLOCK</div><div style="font:italic 500 19px/1.35 var(--serif);margin-top:10px">Dancing, graphic design, teaching, scrapbooking, gaming, working out, and Catan.</div>`},
+
+  // six sigma
+  {e:'six-sigma',c:2,r:2,w:4,h:1,html:`<div class="lab">DMAIC · THE GREEN BELT METHOD</div><div class="dmaic">${[['D','Define'],['M','Measure'],['A','Analyze'],['I','Improve'],['C','Control']].map(([k,v])=>`<div><b>${k}</b><span class="lab">${v}</span></div>`).join('')}</div>`},
+  {e:'six-sigma',c:2,r:3,w:2,h:1,html:titleCard('ANG·SSQ·2026','Six Sigma Quiz','2025–2026','QUIZ PLATFORM · SIX SIGMA')},
+  {e:'six-sigma',c:4,r:3,w:2,h:1,html:`<h2>Studying, built into a tool</h2><p>A quizzing platform I built as my Six Sigma project while working through the IISE Green Belt course and preparing for its certification exam.</p>`},
+  {e:'six-sigma',c:2,r:4,w:2,h:1,html:`<div class="lab acc">CERTIFICATION RECORD</div>${rows([['BODY','IISE'],['LEVEL','SIX SIGMA GREEN BELT'],['STATUS','EARNED'],['YEAR','2026']])}`},
+  {e:'six-sigma',c:4,r:4,w:2,h:1,cls:'ink',html:`<div class="lab">REPOSITORY</div><div style="font:600 22px/1.2 var(--serif);margin-top:8px">angehla/sixsigmaquiz</div>
+     <a class="open" style="background:#e9dfc5;color:#231d15" href="https://github.com/angehla/sixsigmaquiz">OPEN REPO ↗</a><span class="cap">GITHUB</span>`},
+
+
+  // balance
+  {e:'balance',c:13,r:7,w:2,h:1,html:titleCard('ANG·BAL·2024','BALANCE','STUDENT RESEARCHER · 2024–2025','TRANSFORMER · NMT')},
+  {e:'balance',c:15,r:7,w:2,h:1,html:`<h2>Translation without a default</h2><p>As a student researcher on BALANCE (Bias-Aware Neural Machine Translation), I built a Transformer-based translation pipeline for Portuguese and Catalan.</p>`},
+  {e:'balance',c:13,r:8,w:4,h:1,html:`<div class="lab">ONE SENTENCE, THREE LANGUAGES</div>
+     <div class="xl"><span>EN</span><div>The doctor finished <i>her</i> shift.</div>
+     <span>PT</span><div><b>A médica</b> terminou o turno dela. <span style="opacity:.6">— not <i>o médico</i></span></div>
+     <span>CA</span><div><b>La metgessa</b> va acabar el seu torn. <span style="opacity:.6">— not <i>el metge</i></span></div></div><span class="cap">ILLUSTRATION · NOT RESEARCH DATA</span>`},
+  {e:'balance',c:13,r:9,w:2,h:1,html:`<div class="lab acc">METHOD</div>${rows([['MODEL','TRANSFORMER NMT'],['LANGUAGES','PORTUGUESE · CATALAN'],['QUALITY','BLEU SCORES'],['BIAS','GENDER-SKEW DIAGNOSTICS']])}`},
+  {e:'balance',c:15,r:9,w:2,h:1,html:`<h2>Why it matters</h2><p>Both languages mark gender on nouns English leaves open, so a translator has to choose. I curated a test set of occupation terms and pronoun-ambiguous sentences to see which choice it makes.</p>`},
+
+  // cosmos
+  {e:'cosmos',c:8,r:12,w:3,h:2,cls:'ink',html:`<div class="fill">${board}</div><span class="cap">TIMER · ILLUSTRATION · RUNNING SINCE YOU OPENED THIS PAGE</span>`},
+  {e:'cosmos',c:11,r:12,w:2,h:1,html:titleCard('ANG·CSM','COSMOS Timer','UCSD COSMOS','ARDUINO · BREADBOARD')},
+  {e:'cosmos',c:11,r:13,w:2,h:1,html:`<h2>Counting in hardware</h2><p>At UCSD COSMOS, in Cluster 10, I built a working timer from an Arduino and a breadboard.</p>`},
+  {e:'cosmos',c:8,r:14,w:2,h:1,html:`<div class="lab acc">PROGRAM RECORD</div>${rows([['PROGRAM','UCSD COSMOS'],['CLUSTER','10'],['BUILD','TIMER']])}`},
+  {e:'cosmos',c:10,r:14,w:2,h:1,html:`<div class="lab">PARTS</div>${rows([['MICROCONTROLLER','ARDUINO'],['PROTOTYPING','BREADBOARD']])}`},
+
+  // dance
+  {e:'dance',c:14,r:12,w:2,h:1,html:titleCard('ANG·JLP·2023','Jun Lu Performing Arts','INSTRUCTOR &amp; TA · 2023–2026','TEACHING · CHOREOGRAPHY',1)},
+  {e:'dance',c:16,r:12,w:2,h:1,html:`<h2>Cleaning the count</h2><p>I taught summer camp and competition-season classes, choreographed original pieces, and cleaned routines before every event.</p>`},
+  {e:'dance',c:14,r:13,w:4,h:1,html:`<div class="lab">FIVE, SIX, SEVEN, EIGHT</div><div class="counts" id="counts">${'56781234'.split('').map(n=>`<b>${n}</b>`).join('')}</div>`},
+  {e:'dance',c:14,r:14,w:2,h:1,html:`<div class="lab acc">COMPETITION RECORD</div>${rows([['STUDENTS MENTORED','90+'],['FINISHES','REGULAR TOP 5'],['TOP 3 AT','KAR · REVIVE DANCE'],['','YAGP · RAINBOW DANCE']])}`},
+  {e:'dance',c:16,r:14,w:2,h:1,cls:'ink',html:`<div class="withheld"><div class="lab">PHOTO WITHHELD</div><div class="lab" style="opacity:.6">ADD A REHEARSAL SHOT</div></div><span class="cap">JUN LU · STUDIO</span>`}
+];
+
+/* ---- render ---- */
+const canvas = document.getElementById('canvas'), viewer = document.getElementById('viewer'), tabsEl = document.getElementById('tabs');
+let cells = '';
+for (let r = 1; r <= 16; r++) for (let c = 1; c <= 17; c++) cells += `<div class="cell" style="grid-column:${c};grid-row:${r}">${L[c-1]}${r}</div>`;
+canvas.innerHTML = cells + CARDS.map(k => `<article class="card ${k.cls||''}" data-e="${k.e}" style="--c:${k.c};--r:${k.r};--w:${k.w};--h:${k.h||1}">${k.html}<span class="co">${L[k.c-1]}${k.r}</span></article>`).join('');
+document.getElementById('count').textContent = String(ENTRIES.length).padStart(2,'0') + ' ENTRIES';
+tabsEl.innerHTML = ENTRIES.map((e,i) => `<li><button class="tab" data-id="${e.id}" aria-current="false"><span class="n">${String(i).padStart(2,'0')}</span><span class="t">${e.title}</span><span class="co">${e.at}</span><span class="hole">${e.year}</span></button></li>`).join('');
+
+/* ---- camera ---- */
+let cam = {x:0,y:0,s:1}, current = null, moveTimer;
+const apply = () => canvas.style.transform = `translate(${cam.x}px,${cam.y}px) scale(${cam.s})`;
+function go(id, instant) {
+  const els = [...canvas.querySelectorAll(`.card[data-e="${id}"]`)];
+  if (!els.length) return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  els.forEach(el => {x0=Math.min(x0,el.offsetLeft);y0=Math.min(y0,el.offsetTop);x1=Math.max(x1,el.offsetLeft+el.offsetWidth);y1=Math.max(y1,el.offsetTop+el.offsetHeight)});
+  const W = viewer.clientWidth, H = viewer.clientHeight;
+  const s = Math.max(W < 600 ? .4 : .68, Math.min(1.05, W/(x1-x0+70), H/(y1-y0+70)));
+  cam = {s, x: W/2-(x0+x1)/2*s, y: H/2-(y0+y1)/2*s};
+  if (instant) { canvas.style.transition='none'; apply(); canvas.offsetWidth; canvas.style.transition=''; }
+  else { viewer.classList.add('moving'); clearTimeout(moveTimer); moveTimer=setTimeout(()=>viewer.classList.remove('moving'),700); apply(); if (id!==current) whir(); }
+  current = id;
+  tabsEl.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.id===id));
+  try { history.replaceState(null,'','#'+id); } catch(_) {}
+}
+
+tabsEl.addEventListener('click', e => { const t=e.target.closest('.tab'); if (t) { tick(); go(t.dataset.id); if (innerWidth <= 860) viewer.scrollIntoView({behavior:'smooth',block:'start'}); }});
+document.addEventListener('keydown', e => {
+  if (!['ArrowDown','ArrowUp'].includes(e.key) || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  e.preventDefault();
+  const i = ENTRIES.findIndex(x=>x.id===current), n = (i + (e.key==='ArrowDown'?1:-1) + ENTRIES.length) % ENTRIES.length;
+  tick(); go(ENTRIES[n].id); tabsEl.querySelectorAll('.tab')[n].focus();
+});
+
+/* ---- drag, wheel, click-a-card ---- */
+let drag = null;
+viewer.addEventListener('pointerdown', e => {
+  if (e.target.closest('a,button')) return;
+  drag = {x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:false}; viewer.setPointerCapture(e.pointerId);
+});
+viewer.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if (Math.abs(dx)+Math.abs(dy) > 4) { drag.moved=true; viewer.classList.add('drag'); }
+  if (drag.moved) { cam.x=drag.cx+dx; cam.y=drag.cy+dy; apply(); }
+});
+viewer.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const wasDrag = drag.moved; drag=null; viewer.classList.remove('drag');
+  if (!wasDrag) { const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.card'); if (el) { const id = el.dataset.e==='x' ? 'about' : el.dataset.e; if (id!==current) { tick(); go(id); } } }
+});
+viewer.addEventListener('wheel', e => { e.preventDefault(); viewer.classList.add('drag'); cam.x-=e.deltaX; cam.y-=e.deltaY; apply(); clearTimeout(moveTimer); moveTimer=setTimeout(()=>viewer.classList.remove('drag'),120); }, {passive:false});
+const ro = new ResizeObserver(() => current && go(current, true)); ro.observe(viewer);
+
+/* ---- sound (generated, no files) ---- */
+let ac = null, soundOn = false;
+const btn = document.getElementById('sound');
+btn.addEventListener('click', () => {
+  soundOn = !soundOn; btn.setAttribute('aria-pressed', soundOn); btn.textContent = soundOn ? '◖)) ON' : '◖)) OFF';
+  if (soundOn && !ac) { try { ac = new (window.AudioContext||window.webkitAudioContext)(); } catch(_) { soundOn=false; } }
+  if (ac && ac.state==='suspended') ac.resume().catch(()=>{});
+  tick();
+});
+function noise(dur, type, f0, f1, vol) {
+  if (!soundOn || !ac) return;
+  const len = Math.floor(ac.sampleRate*dur), buf = ac.createBuffer(1,len,ac.sampleRate), d = buf.getChannelData(0);
+  for (let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const src=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain(), t=ac.currentTime;
+  src.buffer=buf; f.type=type; f.Q.value=4; f.frequency.setValueAtTime(f0,t); f.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.04); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  src.connect(f).connect(g).connect(ac.destination); src.start();
+}
+function whir() { noise(.85,'bandpass',300,900,.08); }
+function tick() { noise(.035,'highpass',3000,2500,.12); }
+
+/* ---- live bits: COSMOS timer + dance counts ---- */
+const start = Date.now(), segs = canvas.querySelectorAll('.seg');
+function drawTime() {
+  const s = Math.floor((Date.now()-start)/1000), str = String(Math.floor(s/60)%100).padStart(2,'0') + String(s%60).padStart(2,'0');
+  segs.forEach(el => el.classList.toggle('on', DIG[+str[el.dataset.d]].includes(el.dataset.s)));
+}
+drawTime(); setInterval(drawTime, 1000);
+const counts = [...document.querySelectorAll('#counts b')]; let beat = 0;
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => { counts.forEach((b,i)=>b.classList.toggle('on', i===beat)); beat=(beat+1)%8; }, 450);
+else counts[0].classList.add('on');
+
+
+/* ===== RÉSUMÉ (shown in a pop-up when RÉSUMÉ is clicked) ===== */
+const RESUME = [
+ ['EDUCATION',[
+  ['University of Illinois Urbana-Champaign, Grainger College of Engineering','Champaign, IL','B.S. in Industrial Engineering · Minor in Computer Science','Expected May 2029',['Certifications: Six Sigma Green Belt']],
+  ['Lynbrook High School','San Jose, CA','High School Diploma','Aug 2022 – Jun 2026',['GPA: 3.93/4.00']]]],
+ ['PROFESSIONAL EXPERIENCE',[
+  ['Illinois Business Consulting','Champaign, IL','New Consultant (Selected from 500+ applicants)','Sep 2026 – Present',['Assess healthcare needs and potential clinical partners across Central Illinois through market and primary research','Rated 178 Illinois hospitals on a six-criteria scorecard, helping shortlist 10 hospitals and 10 clinics','Turn quantitative and qualitative findings into weekly client presentations and recommendations']],
+  ['CUBE Consulting','Champaign, IL','Technical Consultant','Sep 2026 – Present',['Conduct primary research for VoiceOS (YC P25) to identify customer needs and barriers to product adoption','Flag 17 bugs and 5 product suggestions from weekly user check-ins, saving the VoiceOS team testing time','Plan UIUC outreach events to build product awareness and collect user feedback for go-to-market recommendations']],
+  ['Jun Lu Performing Arts','San Jose, CA','Dance Instructor & Teaching Assistant','Oct 2023 – Aug 2026',['Taught summer camp and competition-season classes, choreographing original dance pieces','Mentored 90+ students through competition preparation, cleaning routines before each event','Coached dancers to regular top-5 finishes, with top-3 placements at KAR, Revive Dance, YAGP, and Rainbow Dance']],
+  ['BALANCE: Bias-Aware Neural Machine Translation','San Jose, CA','Student Researcher','May 2024 – Aug 2025',['Built a Transformer-based neural machine translation pipeline for Portuguese and Catalan','Curated a test set of occupation terms and pronoun-ambiguous sentences','Measured translation quality with BLEU scores and gender bias with gender-skew diagnostics']]]],
+ ['LEADERSHIP & EXTRACURRICULAR ACTIVITIES',[
+  ['Institute of Industrial and Systems Engineers (IISE)','Champaign, IL','Underclassmen Representative','Sep 2026 – Present',['Founded the ISE Underclassmen Committee and direct 20+ freshmen on event planning and professional development','Represent ~150 ISE undergraduates, relaying lowerclassmen feedback to faculty and upperclass leadership','Organized 3+ department events connecting underclassmen with alumni and peer mentors']],
+  ['Design Innovation Society','San Jose, CA','Founder & President','Jan 2024 – Jun 2026',['Founded an engineering and product design club and grew active membership from 5 to 30 students','Hosted design-a-thons, workshops, and speaker events on engineering, design, supply chain, and product marketing']],
+  ['Key Club, Division Leadership Team','San Jose, CA','Public Relations & Tech Lead / Lynbrook President','May 2024 – Jun 2026',['Directed 13 public relations officers and managed digital resources, raising member engagement by 15%','Ran division-wide communications and promotional campaigns for events across 11 schools']],
+  ['Friends of Children with Special Needs (FCSN)','San Jose, CA','Mandarin & Math Tutor','Aug 2023 – Present',['Tutor 4 students with special needs in Mandarin and math, adjusting instruction to how each student learns','Wrote 5 individualized lesson plans and helped run inclusive events to keep students engaged']]]],
+ ['SKILLS & LANGUAGES',[
+  ['','','','',['Skills: Python, PowerPoint, Excel, Word, Canva, CAD, HTML','Languages: English (Native), Mandarin (Proficient)','Interests: Dancing, Graphic Design, Teaching, Scrapbooking, Gaming, Working Out, Catan']]]]
+];
+const esc = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+document.getElementById('rvb').innerHTML = '<h2>Angela Zhang</h2><p class="ct">angelaz9@illinois.edu · linkedin.com/in/angelaazhang · San Jose, CA</p>' +
+  RESUME.map(([sec,items]) => `<h3>${sec}</h3>` + items.map(([org,loc,role,when,bul]) => `<div class="job">${org?`<div class="hd"><b>${esc(org)}</b><span>${loc}</span></div><div class="hd"><i>${esc(role)}</i><span>${when}</span></div>`:''}<ul>${bul.map(b=>`<li>${esc(b)}</li>`).join('')}</ul></div>`).join('')).join('');
+const rv = document.getElementById('rv');
+document.getElementById('resume').addEventListener('click', e => { e.preventDefault(); tick(); try { rv.showModal(); } catch(_) { rv.setAttribute('open',''); } });
+document.getElementById('rvx').addEventListener('click', () => rv.close());
+rv.addEventListener('click', e => { if (e.target === rv) rv.close(); });
+
+/* ---- start ---- */
+const fromHash = location.hash.slice(1);
+requestAnimationFrame(() => go(ENTRIES.some(e=>e.id===fromHash) ? fromHash : 'about', true));
+addEventListener('hashchange', () => { const h=location.hash.slice(1); if (h!==current && ENTRIES.some(e=>e.id===h)) go(h); });
+}
+</script>
+</body>
+</html>
